@@ -1,0 +1,76 @@
+name: Deploy Azure App Service
+
+on:
+  pull_request_target:
+    types:
+      - 'closed'
+    branches:
+      - 'main'
+
+permissions:
+  actions: write
+  contents: read
+  id-token: write
+  issues: write
+  pull-requests: write
+
+
+env:
+  RESOURCE_GROUP: rg-arfan-pantua
+  APP_SERVICE_PLAN: flexi-dev-portal-plan
+  APP_NAME: flexi-dev-portal-app
+  DOCKER_IMAGE: arfanpantua/flexi-portal:latest
+  WEBSITES_PORT: 80
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the repository code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Log in to Azure using service principal
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_SP_USERNAME }}
+          client-secret: ${{ secrets.AZURE_SP_PASSWORD }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+
+
+      # Create or update App Service Plan
+      - name: Create App Service Plan
+        run: |
+          az appservice plan create \
+            --name ${{ env.APP_SERVICE_PLAN }} \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --sku B1 \
+            --is-linux
+
+      # Create or update Web App
+      - name: Create Web App
+        run: |
+          az webapp create \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --plan ${{ env.APP_SERVICE_PLAN }} \
+            --name ${{ env.APP_NAME }} \
+            --deployment-container-image-name ${{ env.DOCKER_IMAGE }}
+
+      # Set App Service settings
+      - name: Set App Settings
+        run: |
+          az webapp config appsettings set \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --name ${{ env.APP_NAME }} \
+            --settings WEBSITES_PORT=${{ env.WEBSITES_PORT }}
+
+      # Output the Web App URL
+      - name: Get Web App URL
+        run: |
+          az webapp show \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --name ${{ env.APP_NAME }} \
+            --query defaultHostName \
+            --output tsv
