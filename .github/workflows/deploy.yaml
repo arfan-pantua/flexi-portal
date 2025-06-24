@@ -38,12 +38,7 @@ jobs:
       - name: Azure Login
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZURE_SP_USERNAME }}
-          client-secret: ${{ secrets.AZURE_SP_PASSWORD }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          enable-OIDC: false
-          allow-no-subscriptions: true
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       # Debug Azure context
       - name: Debug Azure Context
