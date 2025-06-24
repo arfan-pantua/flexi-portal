@@ -42,7 +42,17 @@ jobs:
           client-secret: ${{ secrets.AZURE_SP_PASSWORD }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          enable-OIDC: false
           allow-no-subscriptions: true
+
+      # Debug Azure context
+      - name: Debug Azure Context
+        run: |
+          az account show --output table
+          az account list --output table
+          echo "Client ID: ${{ secrets.AZURE_SP_USERNAME }}"
+          echo "Tenant ID: ${{ secrets.AZURE_TENANT_ID }}"
+          echo "Subscription ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}"
 
       # Set the Azure subscription
       - name: Set Azure Subscription
